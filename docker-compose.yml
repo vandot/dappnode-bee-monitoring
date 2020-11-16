@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  bee:
+    container_name: bee
+    restart: unless-stopped
+    image: ethersphere/bee
+    environment:
+      BEE_PASSWORD: 123456789
+      BEE_SWAP_ENDPOINT: https://rpc.slock.it/goerli
+      BEE_DEBUG_API_ENABLE: "true"
+    volumes:
+      - bee:/home/bee
+    ports:
+      - "8080:8080"
+      - "6060:6060"
+    command:
+      - start
+  prometheus:
+    container_name: prometheus
+    restart: unless-stopped
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - bee
+  grafana:
+    container_name: grafana
+    restart: unless-stopped
+    image: grafana/grafana
+    volumes:
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana.ini:/etc/grafana/grafana.ini
+      - grafana:/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+volumes:
+  bee:
+  prometheus:
+  grafana:
